@@ -1,8 +1,8 @@
 #pragma once
 
-#include <bitset>
 #include <raylib.h>
 #include <iostream>
+#include <string>
 
 //my code
 #include "game.h"
@@ -87,29 +87,29 @@ uint8_t Game::getNeighbours(unsigned int x, unsigned int y, sizetPair map_index,
 	uint8_t value = cells[map_index.first] >> (map_index.second + 1) & (uint64_t(1) << (BIT_CELL_SIZE - 1)) - 1;
 	
 
-	std::cout << columns << " " << 0 % 2 << " "  << getMapIndex({index + 1}).first << "\n";
-	////if odd go to the right for the missing neighbour value
-	//if (index % 2 == 0) {
-	//	//check range of index
-	//	if (x + 1 > columns) {
-	//		sizetPair new_mapIndex = getMapIndex(size_t { y * columns });
-	//		value += getState(new_mapIndex);
-	//	}
-	//	else {
-	//		sizetPair new_mapIndex = getMapIndex({ index + 1 });
-	//		value += getState(new_mapIndex);
-	//	}
-	//}
-	//else {
-	//	if (x - 1 < 0) {
-	//		sizetPair new_mapIndex = getMapIndex({ y * columns + columns });
-	//		value += getState(new_mapIndex);
-	//	}
-	//	else {
-	//		sizetPair new_mapIndex = getMapIndex({ index - 1 });
-	//		value += getState(new_mapIndex);
-	//	}
-	//}
+	//std::cout << columns << " " << 0 % 2 << " "  << getMapIndex({index + 1}).first << "\n";
+	//if even go to the right for the missing neighbour value
+	if (index % 2 == 0) {
+		//check range of index and then wrap if larger than max width
+		if (x + 1 == columns) {
+			sizetPair new_mapIndex = getMapIndex({ y * columns });
+			value += getState(new_mapIndex);
+		}
+		else {
+			sizetPair new_mapIndex = getMapIndex({ index + 1 });
+			value += getState(new_mapIndex);
+		}
+	}
+	else { //if odd go to the left
+		if (x - 1 < 0) {
+			sizetPair new_mapIndex = getMapIndex({ y * columns + columns });
+			value += getState(new_mapIndex);
+		}
+		else {
+			sizetPair new_mapIndex = getMapIndex({ index - 1 });
+			value += getState(new_mapIndex);
+		}
+	}
 
 	return value;
 } 
