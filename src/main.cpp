@@ -8,17 +8,23 @@
 int main()
 {
     // window parameters
-    const unsigned int WINDOW_WIDTH = 1280;
-    const unsigned int WINDOW_HEIGHT = 1280;
+    const unsigned int WINDOW_WIDTH = 1920;
+    const unsigned int WINDOW_HEIGHT = 1080;
 
-    //grid parameters
-    const unsigned int CELLSIZE = 5;
+    //grid parameters must be >= 2
+    const unsigned int CELLSIZE = 40;
 
     //game
     Game game = { WINDOW_WIDTH, WINDOW_HEIGHT, CELLSIZE };
-    game.setCell(0, 100);
 
-    InitWindow(WINDOW_HEIGHT, WINDOW_HEIGHT, "Conway's GOL");
+    game.setCell(0, 0, 1);
+    game.setCell(1, 0, 1);
+
+    u8Pair info = game.getCell(0, 0);
+    std::cout << info.first << "\n";
+
+
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Conway's GOL");
 
     //fps monitor
     float timer = 0.0f;
@@ -34,7 +40,7 @@ int main()
 
         //drawing
         BeginDrawing();
-
+    
         game.DrawBackground();
         game.DrawCells();
 
