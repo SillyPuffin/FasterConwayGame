@@ -38,11 +38,11 @@ void Game::DrawCells() {
 	}
 }
 
-size_t Game::getIndex(unsigned int x, unsigned int y) {
+size_t Game::getIndex(const unsigned int& x, const unsigned int& y) {
 	return size_t(y * columns + x);
 }
 
-sizetPair Game::getMapIndex(size_t index) {
+sizetPair Game::getMapIndex(const size_t& index) {
 	size_t bit_index = index * BIT_CELL_SIZE;
 	size_t chunk_index = bit_index / 64;
 	size_t chunk_offset = bit_index % 64;
@@ -50,7 +50,7 @@ sizetPair Game::getMapIndex(size_t index) {
 	return sizetPair{ chunk_index, chunk_offset };
 }
 
-void Game::setCell(unsigned int x, unsigned int y, uint8_t state) {
+void Game::setCell(const unsigned int& x, const unsigned int& y, const uint8_t& state) {
 	sizetPair mapIndex = getMapIndex(getIndex(x, y));
 
 	//if setting alive
@@ -65,7 +65,7 @@ void Game::setCell(unsigned int x, unsigned int y, uint8_t state) {
 
 }
 
-u8Pair Game::getCell(unsigned int x, unsigned int y) {
+u8Pair Game::getCell(const unsigned int& x, const unsigned int& y) {
 	size_t index = getIndex(x, y);
 	sizetPair map_idx = getMapIndex(index);
 
@@ -75,13 +75,13 @@ u8Pair Game::getCell(unsigned int x, unsigned int y) {
 	return { neighbours, state };
 }
 
-uint8_t Game::getState(sizetPair mapIndex) {
+uint8_t Game::getState(const sizetPair& mapIndex) {
 	uint8_t state = 0b1 & (cells[mapIndex.first] >> mapIndex.second);
 
 	return state;
 }
 
-uint8_t Game::getNeighbours(unsigned int x, unsigned int y, sizetPair map_index, size_t index) {
+uint8_t Game::getNeighbours(const unsigned int& x, const unsigned int& y,const sizetPair& map_index, const size_t& index) {
 	//this line looks a bit silly but all it does is bit shift the chunk down by whatever the cell bit offset is + 1 to get the three neighbour bits and not the state
 	//then it masks it with 0b111 to get just the neighbours, then cast to a uint8_t because the max neighbour size is 7
 	uint8_t value = cells[map_index.first] >> (map_index.second + 1) & (uint64_t(1) << (BIT_CELL_SIZE - 1)) - 1;
