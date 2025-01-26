@@ -118,7 +118,7 @@ void Game::setNeighbours(const int& x, const int& y, const uint8_t& state, const
 	for (const int& dx : offset) {
 		for (const int& dy : offset) {
 			if (dy != 0) {
-				changeNeighbourValue({ x,y }, { dx,dy }, state);
+				changeNeighbourValue({ x, y }, { dx, dy }, state);
 			}
 			else if (dy == 0 && dx != 0) {
 				if (exclude_left) {

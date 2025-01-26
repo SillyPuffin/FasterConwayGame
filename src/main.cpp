@@ -10,8 +10,8 @@
 int main()
 {
     // window parameters
-    const unsigned int WINDOW_WIDTH = 1920;
-    const unsigned int WINDOW_HEIGHT = 1080;
+    const unsigned int WINDOW_WIDTH = 2460;
+    const unsigned int WINDOW_HEIGHT = 1440;
 
     //grid parameters must be >= 2
     const int CELLSIZE = 5;
