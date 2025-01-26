@@ -276,18 +276,24 @@ void Game::genChangeList(const int& startRow, const int& rowSize) {
 }
 
 void Game::applyChangeList(const size_t& start_idx, const size_t& index_size) {
-
+	for (size_t idx = start_idx; idx < (start_idx + index_size); idx++) {
+		const location& cell = changeList[idx];
+		setCell(cell.x, cell.y , cell.state);
+	}
 }
 
 void Game::stepSim() {
 	const int max_threads = std::thread::hardware_concurrency();
 	std::vector<std::thread> changeThreads;
+	std::vector<std::thread> applyThreads;
 
 	//assignind threads to break up the grid and generate changelist
 	const int rowsPerThread = rows / max_threads;
 	const int extraRows = rows % max_threads;
 
-	for (int t = 0; t < max_threads; t++) {
+	int changethreadsToMake = (rowsPerThread == 0) ? 1 : max_threads;
+
+	for (int t = 0; t < changethreadsToMake; t++) {
 		int startRow = t * rowsPerThread;
 		int rowSize;
 		if (t == max_threads - 1) {
@@ -303,9 +309,11 @@ void Game::stepSim() {
 		thread.join();
 	}
 	
+	//multi thread the cell updating after generating the changelist
 	for (const auto& cell : changeList) {
 		setCell(cell.x, cell.y, cell.state);
 	}
+
 	//clear changelist
 	changeList.resize(0);
 }
