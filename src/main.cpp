@@ -14,7 +14,7 @@ int main()
     const unsigned int WINDOW_HEIGHT = 1080;
 
     //grid parameters must be >= 2
-    const int CELLSIZE = 20;
+    const int CELLSIZE = 5;
 
     //game
     Game game = { WINDOW_WIDTH, WINDOW_HEIGHT, CELLSIZE };
