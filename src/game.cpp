@@ -283,7 +283,7 @@ void Game::applyChangeList(const size_t& start_idx, const size_t& index_size) {
 }
 
 void Game::stepSim() {
-	const int max_threads = std::thread::hardware_concurrency();
+	const int max_threads = 12;
 	std::vector<std::thread> changeThreads;
 	//assignind threads to break up the grid and generate changelist
 	const int rowsPerThread = rows / max_threads;
