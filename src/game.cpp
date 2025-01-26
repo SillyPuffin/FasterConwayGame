@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <bitset>
+#include <iterator>
 
 //my code
 #include "game.h"
@@ -255,18 +256,53 @@ void Game::getUserInput() {
 
 }
 
-void Game::stepSim() {
+void Game::genChangeList(const int& startRow, const int& rowSize) {
+	std::vector<location> localChangeList;
+
 	for (int x = 0; x < columns; x++) {
-		for (int y = 0; y < rows; y++) {
+		for (int y = startRow; y < (startRow+rowSize); y++) {
 			u8Pair info = getCell(x, y);//returns neighbours, state
 			uint8_t new_state = lookup[info.second][info.first];
 
 			if (new_state != info.second) {
-				changeList.emplace_back(location{ x, y, new_state });
+				localChangeList.emplace_back(location{ x, y, new_state });
 			}
 
 		}
 	}
+	std::lock_guard<std::mutex> lock(changeListMutex);
+	changeList.insert(changeList.end(), std::make_move_iterator(localChangeList.begin()), std::make_move_iterator(localChangeList.end()));
+
+}
+
+void Game::applyChangeList(const size_t& start_idx, const size_t& index_size) {
+
+}
+
+void Game::stepSim() {
+	const int max_threads = std::thread::hardware_concurrency();
+	std::vector<std::thread> changeThreads;
+
+	//assignind threads to break up the grid and generate changelist
+	const int rowsPerThread = rows / max_threads;
+	const int extraRows = rows % max_threads;
+
+	for (int t = 0; t < max_threads; t++) {
+		int startRow = t * rowsPerThread;
+		int rowSize;
+		if (t == max_threads - 1) {
+			rowSize = rowsPerThread + extraRows;
+		}
+		else {
+			rowSize = rowsPerThread;
+		}
+		changeThreads.emplace_back(&Game::genChangeList, this, startRow, rowSize);
+	}
+	//wait for all threads to finish before continuing
+	for (auto& thread : changeThreads) {
+		thread.join();
+	}
+	
 	for (const auto& cell : changeList) {
 		setCell(cell.x, cell.y, cell.state);
 	}
