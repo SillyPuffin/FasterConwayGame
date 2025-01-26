@@ -3,6 +3,7 @@
 #include <array>
 #include <utility>
 #include <cstdint>
+#include <algorithm>
 
 
 typedef std::pair<size_t,size_t> sizetPair;

@@ -9,23 +9,22 @@
 int main()
 {
     // window parameters
-    const unsigned int WINDOW_WIDTH = 1880;
+    const unsigned int WINDOW_WIDTH = 1920;
     const unsigned int WINDOW_HEIGHT = 1080;
 
     //grid parameters must be >= 2
-    const unsigned int CELLSIZE = 40;
+    const unsigned int CELLSIZE = 5;
 
     //game
     Game game = { WINDOW_WIDTH, WINDOW_HEIGHT, CELLSIZE };
 
-    game.setCell(0, 0, 1);
-    game.setCell(46, 0, 1);
-
-    u8Pair info = game.getCell(46, 0);
-    std::cout << std::bitset<8>(info.first) << "\n";
+    /*u8Pair info = game.getCell(10, 11);
+    std::cout << std::bitset<8>(info.first) << "\n";*/
 
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Conway's GOL");
+
+    game.randomiseCells();
 
     //fps monitor
     float timer = 0.0f;
