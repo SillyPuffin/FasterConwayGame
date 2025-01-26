@@ -3,6 +3,7 @@
 #include <raylib.h>
 #include <iostream>
 #include <string>
+#include <bitset>
 
 //my code
 #include "game.h"
@@ -67,88 +68,68 @@ int Game::boundaryLoop(int variable, const int& max) {
 void Game::setCell(const int& x, const int& y, const uint8_t& state) {
 	uint64_t index = getIndex(x, y);
 	sizetPair mapIndex = getMapIndex(index);
-
+	//std::cout << mapIndex.first << " " << mapIndex.second << "\n";
 	//if setting alive
-	if (state) {
-		cells[mapIndex.first] |= (1ULL << mapIndex.second);
-		if (index % 2 == 0) {
-			setNeighbours(x, y, state, false);
+	uint8_t currentState = getState(mapIndex);//only change state if the state it will be set to is different to prevent stacking value
+	if (currentState != state) {
+		if (state) {
+			cells[mapIndex.first] |= (1ULL << mapIndex.second);
+			if (index % 2 == 0) {
+				setNeighbours(x, y, state, false);
+			}
+			else {
+				setNeighbours(x, y, state, true);
+			}
 		}
 		else {
-			setNeighbours(x, y, state, true);
-		}
-	} 
-	else {
-		cells[mapIndex.first] &= ~(1ULL << mapIndex.second);
-		if (index % 2 == 0) {
-			setNeighbours(x, y, state, false);
-		}
-		else {
-			setNeighbours(x, y, state, true);
+			cells[mapIndex.first] &= ~(1ULL << mapIndex.second);
+			if (index % 2 == 0) {
+				setNeighbours(x, y, state, false);
+			}
+			else {
+				setNeighbours(x, y, state, true);
+			}
 		}
 	}
+	
 
+}
+
+void Game::changeNeighbourValue(const std::pair<int, int>& pos, const std::pair<int, int>& offsetPair, const uint8_t& state) {
+	int new_x = boundaryLoop({ pos.first + offsetPair.first }, columns);
+	int new_y = boundaryLoop({ pos.second + offsetPair.second }, rows);
+	sizetPair map_idx = getMapIndex(getIndex(new_x, new_y));
+	uint64_t value = (cells[map_idx.first] >> (map_idx.second + 1)) & ((1ULL << (BIT_CELL_SIZE - 1)) - 1);
+
+	if (state == 1) {//add to the neighbours
+		value += 1;
+		cells[map_idx.first] &= ~(((1ULL << (BIT_CELL_SIZE - 1)) - 1) << (map_idx.second + 1)); //clear the bits at that location
+		cells[map_idx.first] |= value << (map_idx.second + 1);
+	}
+	else if (state == 0) {
+		value -= 1;
+		cells[map_idx.first] &= ~(((1ULL << (BIT_CELL_SIZE - 1)) - 1) << (map_idx.second + 1)); //clear the bits at that location
+		cells[map_idx.first] |= value << (map_idx.second + 1);
+	}
 }
 
 void Game::setNeighbours(const int& x, const int& y, const uint8_t& state, const bool& exclude_left) {
 	//if even exclude right, if odd exclude left
-	for (const int8_t& dx : offset) {
-		for (const int8_t& dy : offset) {
+	for (const int& dx : offset) {
+		for (const int& dy : offset) {
 			if (dy != 0) {
-				int new_x = boundaryLoop(x + dx, columns);
-				int new_y = boundaryLoop(y + dy, rows);
-				sizetPair map_idx = getMapIndex(getIndex(new_x, new_y));
-				uint64_t value = (cells[map_idx.first] >> (map_idx.second + 1)) & ((1ULL << (BIT_CELL_SIZE - 1)) - 1);
-
-				if (state == 1) {//add to the neighbours
-					value += 1;
-					cells[map_idx.first] &= ~(((1ULL << (BIT_CELL_SIZE - 1)) - 1) << (map_idx.second+1)); //clear the bits at that location
-					cells[map_idx.first] |= value << (map_idx.second + 1);
-				}
-				else if (state == 0) {
-					value -= 1;
-					cells[map_idx.first] &= ~(((1ULL << (BIT_CELL_SIZE - 1)) - 1) << map_idx.second); //clear the bits at that location
-					cells[map_idx.first] |= value << (map_idx.second + 1);
-				}
+				changeNeighbourValue({ x,y }, { dx,dy }, state);
 			}
 			else if (dy == 0 && dx != 0) {
 				if (exclude_left) {
 					if (dx != -1) {
 						//gonna be horrednous looking but were going to check state then if its a 1 add a neighbour count to all surrounding cells
-						int new_x = boundaryLoop(x + dx, columns);
-						int new_y = boundaryLoop(y + dy, rows);
-						sizetPair map_idx = getMapIndex(getIndex(new_x, new_y));
-						uint64_t value = (cells[map_idx.first] >> (map_idx.second + 1)) & ((1ULL << (BIT_CELL_SIZE - 1)) - 1);
-
-						if (state == 1) {//add to the neighbours
-							value += 1;
-							cells[map_idx.first] &= ~(((1ULL << (BIT_CELL_SIZE - 1)) - 1) << (map_idx.second + 1)); //clear the bits at that location
-							cells[map_idx.first] |= value << (map_idx.second + 1);
-						}
-						else if (state == 0) {
-							value -= 1;
-							cells[map_idx.first] &= ~(((1ULL << (BIT_CELL_SIZE - 1)) - 1) << map_idx.second); //clear the bits at that location
-							cells[map_idx.first] |= value << (map_idx.second + 1);
-						}
+						changeNeighbourValue({ x,y }, { dx,dy }, state);
 					}
 				}
 				else {
 					if (dx != 1) {
-						int new_x = boundaryLoop(x + dx, columns);
-						int new_y = boundaryLoop(y + dy, rows);
-						sizetPair map_idx = getMapIndex(getIndex(new_x, new_y));
-						uint64_t value = (cells[map_idx.first] >> (map_idx.second + 1)) & ((1ULL << (BIT_CELL_SIZE - 1)) - 1);
-
-						if (state == 1) {//add to the neighbours
-							value += 1;
-							cells[map_idx.first] &= ~(((1ULL << (BIT_CELL_SIZE - 1)) - 1) << (map_idx.second + 1)); //clear the bits at that location
-							cells[map_idx.first] |= value << (map_idx.second + 1);
-						}
-						else if (state == 0) {
-							value -= 1;
-							cells[map_idx.first] &= ~(((1ULL << (BIT_CELL_SIZE - 1)) - 1) << map_idx.second); //clear the bits at that location
-							cells[map_idx.first] |= value << (map_idx.second + 1);
-						}
+						changeNeighbourValue({ x,y }, { dx,dy }, state);
 					}
 				}
 			}
@@ -231,5 +212,71 @@ void Game::randomiseCells() {
 				setCell(x, y, 1);
 			}
 		}
+	}
+}
+
+void Game::getUserInput() {
+	//pause and play
+	if (IsKeyReleased(KEY_SPACE)) {
+		if (run) {
+			pause();
+		}
+		else {
+			play();
+		}
+	}
+
+	//manually reset
+	if (IsKeyPressed(KEY_R)) {
+		pause();
+		randomiseCells();
+	}
+
+	//manually clear
+	if (IsKeyPressed(KEY_C)) {
+		pause();
+		clearCells();
+	}
+
+	//mouse controls
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+		Vector2 pos = GetMousePosition();
+		int x = pos.x / cellSize; int y = pos.y / cellSize; //convert to grid coords
+		
+		setCell(x, y, uint8_t(1));
+
+	}
+	else if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+		Vector2 pos = GetMousePosition();
+		int x = pos.x / cellSize; 
+		int y = pos.y / cellSize; //convert to grid coords
+		setCell(x, y, uint8_t(0));
+	}
+
+}
+
+void Game::stepSim() {
+	for (int x = 0; x < columns; x++) {
+		for (int y = 0; y < rows; y++) {
+			u8Pair info = getCell(x, y);//returns neighbours, state
+			uint8_t new_state = lookup[info.second][info.first];
+
+			if (new_state != info.second) {
+				changeList.emplace_back(location{ x, y, new_state });
+			}
+
+		}
+	}
+	for (const auto& cell : changeList) {
+		setCell(cell.x, cell.y, cell.state);
+	}
+	//clear changelist
+	changeList.resize(0);
+}
+
+void Game::update() {
+	getUserInput();
+	if (run) {
+		stepSim();
 	}
 }

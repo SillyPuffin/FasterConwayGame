@@ -9,10 +9,26 @@
 class Game {
 
 public:
-	Game(unsigned int width, unsigned int height, unsigned int cellSize) : rows(height / cellSize), columns(width / cellSize), cellSize(cellSize) {
+	Game(unsigned int width, unsigned int height, int cellSize) : rows(height / cellSize), columns(width / cellSize), cellSize(cellSize) {
 		size_t total_bits = rows * columns * BIT_CELL_SIZE;
 		size_t num_uint64 = (total_bits + 63) / 64;
 		cells.resize(num_uint64, 0);
+		
+		//defining the lookup table
+		for (int state = 0; state < 2; state++) {
+			for (int neighbourCount = 0; neighbourCount <= 8; neighbourCount++) {
+				if (state==1) {
+					if (neighbourCount >= 2 && neighbourCount <= 3) {
+						lookup[state][neighbourCount] = 1;
+					}
+				}
+				else {
+					if (neighbourCount == 3) {
+						lookup[state][neighbourCount] = 1;
+					}
+				}
+			}
+		}
 	};
 
 	void DrawBackground();
@@ -29,6 +45,7 @@ public:
 
 	void setCell(const int& x,const  int& y,const uint8_t& state);
 	void setNeighbours(const int& x, const int& y, const uint8_t& state, const bool& exclude_left); //mapindex, x , y, state, odd
+	void changeNeighbourValue(const std::pair<int,int>& pos,const std::pair<int,int>& offsetPair, const uint8_t& state);
 
 	void clearCells();
 	void randomiseCells();
@@ -37,15 +54,19 @@ public:
 	void play();
 
 	void update();
+	void stepSim();
 
 private:
 	const int rows;
 	const int columns;
 	bool run = false;
-	const unsigned int cellSize;
+	const int cellSize;
 
 	const uint32_t BIT_CELL_SIZE = 4;
-	const std::array<int8_t, 3> offset = { 1,0,-1 };
+	const std::array<int, 3> offset = { 1,0,-1 };
+	std::array<std::array<uint8_t, 9>, 2> lookup = { {{0}} }; //2d array for next state look up, in to format of 2 x 9 length vector
+	std::vector<location> changeList;
 	bitMap cells;
+	
 	
 };

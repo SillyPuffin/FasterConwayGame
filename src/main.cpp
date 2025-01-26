@@ -3,6 +3,7 @@
 #include <iostream>
 #include <bitset>
 
+
 //my code
 #include "game.h"
 
@@ -13,18 +14,14 @@ int main()
     const unsigned int WINDOW_HEIGHT = 1080;
 
     //grid parameters must be >= 2
-    const unsigned int CELLSIZE = 5;
+    const int CELLSIZE = 20;
 
     //game
     Game game = { WINDOW_WIDTH, WINDOW_HEIGHT, CELLSIZE };
 
-    /*u8Pair info = game.getCell(10, 11);
-    std::cout << std::bitset<8>(info.first) << "\n";*/
-
-
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Conway's GOL");
-
-    game.randomiseCells();
+    SetTargetFPS(0);
+    
 
     //fps monitor
     float timer = 0.0f;
@@ -34,9 +31,11 @@ int main()
     {
         //delta time
         float dt = GetFrameTime();
-
         timer += dt;
         
+        //cell updating
+        game.update();
+
 
         //drawing
         BeginDrawing();
