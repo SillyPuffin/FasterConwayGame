@@ -29,7 +29,7 @@ void Game::DrawBackground() {
 
 void Game::DrawCells() {
 	for (const auto& coords : Drawlist) {
-		DrawRectangle(coords.first * cellSize, coords.second * cellSize, 4, 4, GREEN);
+		DrawRectangle(coords.first * cellSize, coords.second * cellSize, cellSize-1, cellSize-1, GREEN);
 	}
 }
 
