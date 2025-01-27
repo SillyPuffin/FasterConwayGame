@@ -28,17 +28,8 @@ void Game::DrawBackground() {
 }
 
 void Game::DrawCells() {
-	for (int x = 0; x < columns; x++) {
-		for (int y = 0; y < rows; y++) {
-			size_t index = getIndex(x, y);
-			sizetPair map_idx = getMapIndex(index);
-
-			uint64_t state = getState(map_idx);
-
-			if (state == 1) {
-				DrawRectangle(x * cellSize, y * cellSize, cellSize-1, cellSize-1, Color{ 0,255,0,255 });
-			}
-		}
+	for (const auto& coords : Drawlist) {
+		DrawRectangle(coords.first * cellSize, coords.second * cellSize, 4, 4, GREEN);
 	}
 }
 
@@ -76,6 +67,7 @@ void Game::setCell(const int& x, const int& y, const uint8_t& state) {
 	if (currentState != state) {
 		if (state) {
 			cells[mapIndex.first] |= (1ULL << mapIndex.second);
+			Drawlist.insert({ x,y });
 			if (index % 2 == 0) {
 				setNeighbours(x, y, state, false);
 			}
@@ -85,6 +77,7 @@ void Game::setCell(const int& x, const int& y, const uint8_t& state) {
 		}
 		else {
 			cells[mapIndex.first] &= ~(1ULL << mapIndex.second);
+			Drawlist.erase({ x,y });
 			if (index % 2 == 0) {
 				setNeighbours(x, y, state, false);
 			}
@@ -198,6 +191,7 @@ void Game::play() {
 
 void Game::clearCells() {
 	std::fill(cells.begin(), cells.end(), 0);
+	Drawlist.clear();
 }
 
 void Game::randomiseCells() {
