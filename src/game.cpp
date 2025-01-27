@@ -6,6 +6,7 @@
 #include <bitset>
 #include <iterator>
 
+
 //my code
 #include "game.h"
 #include "structures.h"
@@ -256,7 +257,7 @@ void Game::getUserInput() {
 
 }
 
-void Game::genChangeList(const int& startRow, const int& rowSize) {
+void Game::genChangeList(const int& startRow, const int& rowSize, std::barrier<>* syncBarrier) {
 	std::vector<location> localChangeList;
 
 	for (int x = 0; x < columns; x++) {
@@ -270,20 +271,22 @@ void Game::genChangeList(const int& startRow, const int& rowSize) {
 
 		}
 	}
+	//wait for all threads to finish before continuing to setting cells loop
+	syncBarrier->arrive_and_wait();
+
 	std::lock_guard<std::mutex> lock(changeListMutex);
-	changeList.insert(changeList.end(), std::make_move_iterator(localChangeList.begin()), std::make_move_iterator(localChangeList.end()));
-
-}
-
-void Game::applyChangeList(const size_t& start_idx, const size_t& index_size) {
-	for (size_t idx = start_idx; idx < (start_idx + index_size); idx++) {
-		const location& cell = changeList[idx];
-		setCell(cell.x, cell.y , cell.state);
+	//changeList.insert(changeList.end(), std::make_move_iterator(localChangeList.begin()), std::make_move_iterator(localChangeList.end()));
+	for (const auto& cell : localChangeList) {
+		setCell(cell.x, cell.y, cell.state);
 	}
+
 }
+
 
 void Game::stepSim() {
 	const int max_threads = 12;
+	std::barrier syncThreads(max_threads);
+
 	std::vector<std::thread> changeThreads;
 	//assignind threads to break up the grid and generate changelist
 	const int rowsPerThread = rows / max_threads;
@@ -300,20 +303,13 @@ void Game::stepSim() {
 		else {
 			rowSize = rowsPerThread;
 		}
-		changeThreads.emplace_back(&Game::genChangeList, this, startRow, rowSize);
+		changeThreads.emplace_back(&Game::genChangeList, this, startRow, rowSize, &syncThreads);
 	}
 	//wait for all threads to finish before continuing
 	for (auto& thread : changeThreads) {
 		thread.join();
 	}
 	
-	//multi thread the cell updating after generating the changelist
-	for (const auto& cell : changeList) {
-		setCell(cell.x, cell.y, cell.state);
-	}
-
-	//clear changelist
-	changeList.resize(0);
 }
 
 void Game::update() {

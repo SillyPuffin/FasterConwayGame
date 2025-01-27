@@ -56,8 +56,8 @@ public:
 
 	void update();
 	void stepSim();
-	void genChangeList(const int& startRow, const int& rowSize);
-	void applyChangeList(const size_t& start_idx, const size_t& index_size);
+	void genChangeList(const int& startRow, const int& rowSize, std::barrier<>* syncBarrier);
+	
 
 private:
 	const int rows;
@@ -68,7 +68,6 @@ private:
 	const uint32_t BIT_CELL_SIZE = 4;
 	const std::array<int, 3> offset = { 1,0,-1 };
 	std::array<std::array<uint8_t, 9>, 2> lookup = { {{0}} }; //2d array for next state look up, in to format of 2 x 9 length vector
-	std::vector<location> changeList;
 	std::mutex changeListMutex;
 	bitMap cells;
 	
